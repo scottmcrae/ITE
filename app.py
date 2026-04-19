@@ -7,6 +7,7 @@ import json
 import random
 import re
 import streamlit as st
+import streamlit.components.v1 as components
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -153,25 +154,22 @@ def render_explanation(q):
             st.markdown(raw)
         return
 
-    full_html = """
-    <style>
-        .expl-heading { color: #d4813a; font-weight: 700; font-size: 1rem; margin: 20px 0 2px 0; }
-        .expl-bullet  { color: #5fad7e; margin: 4px 0 2px 0; }
-        .expl-sub     { color: #e3e3e3; margin: 0; line-height: 1.4; padding-left: 1.2rem; }
-    </style>
-    """
+    lines = []
+    lines.append('<div style="font-family:sans-serif;font-size:0.9rem;line-height:1.5;">')
     for section in q["explanation"]:
         heading = section.get("heading")
         bullets = section.get("bullets", [])
-
         if heading:
-            full_html += f'<p class="expl-heading">{heading}</p>'
+            lines.append(f'<p style="color:#d4813a;font-weight:700;font-size:1rem;margin:20px 0 2px 0;">{heading}</p>')
         for bullet in bullets:
-            full_html += f'<p class="expl-bullet">• {bullet["text"]}</p>'
+            lines.append(f'<p style="color:#5fad7e;margin:4px 0 2px 0;">• {bullet["text"]}</p>')
             for sub in bullet.get("sub", []):
-                full_html += f'<p class="expl-sub">– {sub}</p>'
-
-    st.html(full_html)
+                lines.append(f'<p style="color:#c8c8c8;margin:0;line-height:1.4;padding-left:1.2rem;">– {sub}</p>')
+    lines.append('</div>')
+    html_out = "\n".join(lines)
+    # estimate height: ~22px per line
+    n_lines = html_out.count("<p") + 2
+    components.html(html_out, height=n_lines * 26, scrolling=False)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
