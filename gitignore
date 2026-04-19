@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+.streamlit/secrets.toml
+
+# Optionally exclude the raw source file if it's large/sensitive
+# ABFM_ITE_2015_2024_Grouped.txt
