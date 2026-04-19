@@ -155,12 +155,17 @@ def render_explanation(q):
 
     for section in q["explanation"]:
         heading = section.get("heading")
+        bullets = section.get("bullets", [])
+
+        html = ""
         if heading:
-            st.markdown(f'<span style="color:#d4813a;font-weight:700;font-size:1rem;">{heading}</span>', unsafe_allow_html=True)
-        for bullet in section.get("bullets", []):
-            st.markdown(f'<p style="color:#5fad7e;margin:2px 0;">• {bullet["text"]}</p>', unsafe_allow_html=True)
+            html += f'<p style="color:#d4813a;font-weight:700;font-size:1rem;margin:20px 0 2px 0;">{heading}</p>'
+        for bullet in bullets:
+            html += f'<p style="color:#5fad7e;margin:4px 0 2px 0;">• {bullet["text"]}</p>'
             for sub in bullet.get("sub", []):
-                st.markdown(f'<p style="margin:0;padding:0;line-height:1.4;padding-left:1.2rem;">– {sub}</p>', unsafe_allow_html=True)
+                html += f'<p style="color:#e3e3e3;margin:0;line-height:1.4;padding-left:1.2rem;">– {sub}</p>'
+
+        st.html(html)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
@@ -200,12 +205,11 @@ def render_question_card(q, show_answer=True, quiz_key=None):
         for letter, text in sorted(choices.items()):
             is_correct = letter == q["correct_letter"]
             if show_answer and is_correct:
-                st.markdown(f"**✅ {letter}) {text}**")
+                st.markdown(f"{letter}) {text}")
             else:
                 st.markdown(f"{letter}) {text}")
 
         if show_answer:
-            st.markdown(f"**Answer: {q['correct_letter']}) {q['correct_label']}**")
             with st.expander("📖 Explanation"):
                 render_explanation(q)
 
