@@ -156,11 +156,11 @@ def render_explanation(q):
     for section in q["explanation"]:
         heading = section.get("heading")
         if heading:
-            st.markdown(f"**{heading}**")
+            st.markdown(f'<span style="color:#d4813a;font-weight:700;font-size:1rem;">{heading}</span>', unsafe_allow_html=True)
         for bullet in section.get("bullets", []):
-            st.markdown(f"- {bullet['text']}")
+            st.markdown(f'<p style="color:#5fad7e;margin:2px 0;">• {bullet["text"]}</p>', unsafe_allow_html=True)
             for sub in bullet.get("sub", []):
-                st.markdown(f"  - {sub}")
+                st.markdown(f'<p style="margin:0;padding:0;line-height:1.4;padding-left:1.2rem;">– {sub}</p>', unsafe_allow_html=True)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
