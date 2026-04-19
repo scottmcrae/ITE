@@ -147,7 +147,6 @@ st.sidebar.markdown(f"**{len(pool):,}** questions match")
 # ─── Helper: render explanation ───────────────────────────────────────────────
 def render_explanation(q):
     st.markdown(f"**Answer: {q['correct_letter']}) {q['correct_label']}**")
-    st.markdown("---")
     if not q.get("explanation"):
         raw = q.get("explanation_raw", "")
         if raw:
@@ -155,21 +154,21 @@ def render_explanation(q):
         return
 
     lines = []
-    lines.append('<div style="font-family:sans-serif;font-size:0.9rem;line-height:1.5;">')
+    lines.append('<div style="font-family:sans-serif;font-size:0.9rem;line-height:1.6;">')
     for section in q["explanation"]:
         heading = section.get("heading")
         bullets = section.get("bullets", [])
         if heading:
-            lines.append(f'<p style="color:#d4813a;font-weight:700;font-size:1rem;margin:20px 0 2px 0;">{heading}</p>')
+            lines.append(f'<p style="color:#d4813a;font-weight:700;font-size:1rem;margin:20px 0 4px 0;">{heading}</p>')
         for bullet in bullets:
-            lines.append(f'<p style="color:#5fad7e;margin:4px 0 2px 0;">• {bullet["text"]}</p>')
-            for sub in bullet.get("sub", []):
-                lines.append(f'<p style="color:#c8c8c8;margin:0;line-height:1.4;padding-left:1.2rem;">– {sub}</p>')
+            lines.append(f'<p style="color:#5fad7e;margin:6px 0 2px 0;">{bullet["text"]}</p>')
+            para = bullet.get("sub_paragraph", "")
+            if para:
+                lines.append(f'<p style="color:#c8c8c8;margin:2px 0 4px 0;padding-left:1rem;line-height:1.6;">{para}</p>')
     lines.append('</div>')
     html_out = "\n".join(lines)
-    # estimate height: ~22px per line
     n_lines = html_out.count("<p") + 2
-    components.html(html_out, height=n_lines * 26, scrolling=False)
+    components.html(html_out, height=n_lines * 28, scrolling=False)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
