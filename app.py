@@ -153,19 +153,25 @@ def render_explanation(q):
             st.markdown(raw)
         return
 
+    full_html = """
+    <style>
+        .expl-heading { color: #d4813a; font-weight: 700; font-size: 1rem; margin: 20px 0 2px 0; }
+        .expl-bullet  { color: #5fad7e; margin: 4px 0 2px 0; }
+        .expl-sub     { color: #e3e3e3; margin: 0; line-height: 1.4; padding-left: 1.2rem; }
+    </style>
+    """
     for section in q["explanation"]:
         heading = section.get("heading")
         bullets = section.get("bullets", [])
 
-        html = ""
         if heading:
-            html += f'<p style="color:#d4813a;font-weight:700;font-size:1rem;margin:20px 0 2px 0;">{heading}</p>'
+            full_html += f'<p class="expl-heading">{heading}</p>'
         for bullet in bullets:
-            html += f'<p style="color:#5fad7e;margin:4px 0 2px 0;">• {bullet["text"]}</p>'
+            full_html += f'<p class="expl-bullet">• {bullet["text"]}</p>'
             for sub in bullet.get("sub", []):
-                html += f'<p style="color:#e3e3e3;margin:0;line-height:1.4;padding-left:1.2rem;">– {sub}</p>'
+                full_html += f'<p class="expl-sub">– {sub}</p>'
 
-        st.html(html)
+    st.html(full_html)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
