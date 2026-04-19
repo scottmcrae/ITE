@@ -167,8 +167,10 @@ def render_explanation(q):
                 lines.append(f'<p style="color:#c8c8c8;margin:2px 0 4px 0;padding-left:1rem;line-height:1.6;">{para}</p>')
     lines.append('</div>')
     html_out = "\n".join(lines)
-    n_lines = html_out.count("<p") + 2
-    components.html(html_out, height=n_lines * 28, scrolling=False)
+    # Estimate height: count chars in paragraphs and assume ~80 chars per line at 24px
+    total_chars = sum(len(l) for l in lines)
+    estimated_height = max(200, (total_chars // 80) * 24 + html_out.count("<p") * 20)
+    components.html(html_out, height=estimated_height, scrolling=True)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
