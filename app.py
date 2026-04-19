@@ -126,11 +126,11 @@ questions = load_questions()
 st.sidebar.title("🩺 ABFM ITE Bank")
 st.sidebar.caption("2015–2024 · 1,960 questions")
 
-mode = st.sidebar.radio("Mode", ["📖 Browse", "🧠 Quiz"], label_visibility="collapsed")
+mode = st.sidebar.radio("Mode", ["📖 Browse", "🧠 Quiz", "📋 Summaries"], label_visibility="collapsed")
 
 all_years = sorted(set(q["year"] for q in questions))
 year_options = ["All Years"] + all_years
-default_year_index = 1 if mode == "📖 Browse" else 0
+default_year_index = 0 if mode == "🧠 Quiz" else 1
 selected_year = st.sidebar.selectbox("Filter by year", options=year_options, index=default_year_index)
 selected_years = all_years if selected_year == "All Years" else [selected_year]
 
@@ -273,3 +273,38 @@ elif mode == "🧠 Quiz":
 
 
 # ═════════
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODE: SUMMARIES
+# ══════════════════════════════════════════════════════════════════════════════
+elif mode == "📋 Summaries":
+    st.title("📋 Summaries")
+
+    if not pool:
+        st.warning("No questions match your filters.")
+        st.stop()
+
+    display_pool = sorted(pool, key=lambda q: (q["year"], q["number"]))
+
+    for q in display_pool:
+        # Collect all summary bullets that have a sub_paragraph
+        summaries = []
+        for section in q.get("explanation", []):
+            heading = section.get("heading")
+            for bullet in section.get("bullets", []):
+                if bullet.get("sub_paragraph"):
+                    summaries.append((heading, bullet["text"], bullet["sub_paragraph"]))
+
+        if not summaries:
+            continue
+
+        with st.container(border=True):
+            st.markdown(f"**Answer: {q['correct_letter']}) {q['correct_label']}**")
+            parts = []
+            last_heading = None
+            for heading, summary, para in summaries:
+                if heading and heading != last_heading:
+                    parts.append(f'<p class="expl-head">{heading}</p>')
+                    last_heading = heading
+                parts.append(f'<p class="expl-sum">{summary}</p>')
+            st.markdown("\n".join(parts), unsafe_allow_html=True)
