@@ -110,7 +110,7 @@ text { fill: #e3e3e3 !important; }
 /* Explanation colors — must beat the global p override */
 [data-testid="stMarkdownContainer"] p.expl-head { color: #d4813a !important; font-weight: 700; font-size: 1rem; margin: 20px 0 4px 0; }
 [data-testid="stMarkdownContainer"] p.expl-sum  { color: #5fad7e !important; margin: 6px 0 2px 0; }
-[data-testid="stMarkdownContainer"] p.expl-para { color: #c8c8c8 !important; margin: 2px 0 8px 0; padding-left: 1rem; line-height: 1.6; }
+[data-testid="stMarkdownContainer"] p.expl-para { color: #c8c8c8 !important; margin: 6px 0 20px 0; padding-left: 1rem; line-height: 1.6; }
 </style>
 """, unsafe_allow_html=True)
 
