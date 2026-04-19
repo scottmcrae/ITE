@@ -106,6 +106,11 @@ text { fill: #e3e3e3 !important; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #2d2d2d; }
 ::-webkit-scrollbar-thumb { background: #555555; border-radius: 3px; }
+
+/* Explanation colors — must beat the global p override */
+[data-testid="stMarkdownContainer"] p.expl-head { color: #d4813a !important; font-weight: 700; font-size: 1rem; margin: 20px 0 4px 0; }
+[data-testid="stMarkdownContainer"] p.expl-sum  { color: #5fad7e !important; margin: 6px 0 2px 0; }
+[data-testid="stMarkdownContainer"] p.expl-para { color: #c8c8c8 !important; margin: 2px 0 8px 0; padding-left: 1rem; line-height: 1.6; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -152,16 +157,18 @@ def render_explanation(q):
             st.markdown(raw)
         return
 
+    parts = []
     for section in q["explanation"]:
         heading = section.get("heading")
         bullets = section.get("bullets", [])
         if heading:
-            st.markdown(f'<p style="color:#d4813a !important;font-weight:700;font-size:1rem;margin:20px 0 4px 0;">{heading}</p>', unsafe_allow_html=True)
+            parts.append(f'<p class="expl-head">{heading}</p>')
         for bullet in bullets:
-            st.markdown(f'<p style="color:#5fad7e !important;margin:6px 0 2px 0;">{bullet["text"]}</p>', unsafe_allow_html=True)
+            parts.append(f'<p class="expl-sum">{bullet["text"]}</p>')
             para = bullet.get("sub_paragraph", "")
             if para:
-                st.markdown(f'<p style="color:#c8c8c8 !important;margin:2px 0 8px 0;padding-left:1rem;line-height:1.6;">{para}</p>', unsafe_allow_html=True)
+                parts.append(f'<p class="expl-para">{para}</p>')
+    st.markdown("\n".join(parts), unsafe_allow_html=True)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
