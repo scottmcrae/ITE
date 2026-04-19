@@ -126,15 +126,12 @@ questions = load_questions()
 st.sidebar.title("🩺 ABFM ITE Bank")
 st.sidebar.caption("2015–2024 · 1,960 questions")
 
-mode = st.sidebar.radio("Mode", ["📖 Browse", "🧠 Quiz", "📊 Stats"], label_visibility="collapsed")
+mode = st.sidebar.radio("Mode", ["📖 Browse", "🧠 Quiz"], label_visibility="collapsed")
 
 all_years = sorted(set(q["year"] for q in questions))
-selected_years = st.sidebar.multiselect(
-    "Filter by year",
-    options=all_years,
-    default=all_years,
-    format_func=str,
-)
+year_options = ["All Years"] + [str(y) for y in all_years]
+selected_year = st.sidebar.selectbox("Filter by year", options=year_options)
+selected_years = all_years if selected_year == "All Years" else [int(selected_year)]
 
 # Keyword search (shared between modes)
 search_term = st.sidebar.text_input("🔍 Search question text", placeholder="e.g. diabetes, chest pain")
@@ -163,11 +160,19 @@ def render_explanation(q):
         bullets = section.get("bullets", [])
         if heading:
             parts.append(f'<p class="expl-head">{heading}</p>')
+        standalone = []
         for bullet in bullets:
-            parts.append(f'<p class="expl-sum">{bullet["text"]}</p>')
             para = bullet.get("sub_paragraph", "")
             if para:
+                if standalone:
+                    parts.append(f'<p class="expl-para">{" ".join(standalone)}</p>')
+                    standalone = []
+                parts.append(f'<p class="expl-sum">{bullet["text"]}</p>')
                 parts.append(f'<p class="expl-para">{para}</p>')
+            else:
+                standalone.append(bullet["text"])
+        if standalone:
+            parts.append(f'<p class="expl-para">{" ".join(standalone)}</p>')
     st.markdown("\n".join(parts), unsafe_allow_html=True)
 
 
@@ -207,14 +212,10 @@ def render_question_card(q, show_answer=True, quiz_key=None):
         # Browse mode — show choices statically
         for letter, text in sorted(choices.items()):
             is_correct = letter == q["correct_letter"]
-            if show_answer and is_correct:
-                st.markdown(f"{letter}) {text}")
-            else:
-                st.markdown(f"{letter}) {text}")
+            st.markdown(f"{letter}) {text}")
 
-        if show_answer:
-            with st.expander("📖 Explanation"):
-                render_explanation(q)
+        with st.expander("📖 Explanation"):
+            render_explanation(q)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -227,52 +228,11 @@ if mode == "📖 Browse":
         st.warning("No questions match your filters.")
         st.stop()
 
-    col1, col2, col3 = st.columns([2, 1, 1])
-    with col1:
-        page_size = st.selectbox("Questions per page", [5, 10, 25, 50], index=1)
-    with col2:
-        sort_by = st.selectbox("Sort", ["Year ↑", "Year ↓", "Random"])
-    with col3:
-        show_answers = st.checkbox("Show answers", value=True)
+    display_pool = sorted(pool, key=lambda q: (q["year"], q["number"]))
 
-    if sort_by == "Year ↑":
-        display_pool = sorted(pool, key=lambda q: (q["year"], q["number"]))
-    elif sort_by == "Year ↓":
-        display_pool = sorted(pool, key=lambda q: (q["year"], q["number"]), reverse=True)
-    else:
-        display_pool = random.sample(pool, len(pool))
-
-    total_pages = max(1, (len(display_pool) - 1) // page_size + 1)
-
-    if "browse_page" not in st.session_state:
-        st.session_state.browse_page = 1
-
-    # Clamp page to valid range after filter changes
-    st.session_state.browse_page = min(st.session_state.browse_page, total_pages)
-
-    # Pagination controls
-    pcol1, pcol2, pcol3 = st.columns([1, 2, 1])
-    with pcol1:
-        if st.button("⬅ Prev", disabled=st.session_state.browse_page <= 1):
-            st.session_state.browse_page -= 1
-            st.rerun()
-    with pcol2:
-        st.markdown(
-            f"<p style='text-align:center'>Page {st.session_state.browse_page} of {total_pages} "
-            f"({len(display_pool):,} questions)</p>",
-            unsafe_allow_html=True,
-        )
-    with pcol3:
-        if st.button("Next ➡", disabled=st.session_state.browse_page >= total_pages):
-            st.session_state.browse_page += 1
-            st.rerun()
-
-    start = (st.session_state.browse_page - 1) * page_size
-    page_qs = display_pool[start : start + page_size]
-
-    for i, q in enumerate(page_qs):
+    for q in display_pool:
         with st.container(border=True):
-            render_question_card(q, show_answer=show_answers)
+            render_question_card(q, show_answer=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -310,61 +270,4 @@ elif mode == "🧠 Quiz":
             render_question_card(q, show_answer=False, quiz_key=f"quiz_{i}_{q['year']}_{q['number']}")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# MODE: STATS
-# ══════════════════════════════════════════════════════════════════════════════
-elif mode == "📊 Stats":
-    st.title("📊 Question Bank Stats")
-
-    # Questions by year
-    st.subheader("Questions by Year")
-    year_counts = {}
-    for q in questions:
-        year_counts[q["year"]] = year_counts.get(q["year"], 0) + 1
-
-    import pandas as pd
-
-    df_years = pd.DataFrame(
-        [(yr, cnt) for yr, cnt in sorted(year_counts.items())],
-        columns=["Year", "Questions"],
-    )
-    st.bar_chart(df_years.set_index("Year"))
-
-    # Answer distribution
-    st.subheader("Correct Answer Letter Distribution")
-    letter_counts = {}
-    for q in questions:
-        l = q["correct_letter"]
-        letter_counts[l] = letter_counts.get(l, 0) + 1
-    df_letters = pd.DataFrame(
-        sorted(letter_counts.items()), columns=["Letter", "Count"]
-    )
-    st.bar_chart(df_letters.set_index("Letter"))
-
-    # Number of choices per question
-    st.subheader("Answer Choice Count Distribution")
-    choice_counts = {}
-    for q in questions:
-        n = len(q.get("choices", {}))
-        choice_counts[n] = choice_counts.get(n, 0) + 1
-    df_choices = pd.DataFrame(
-        sorted(choice_counts.items()), columns=["# Choices", "# Questions"]
-    )
-    st.dataframe(df_choices, use_container_width=False)
-
-    # Current filter summary
-    st.subheader("Current Filter")
-    if pool:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Years selected", len(selected_years))
-        col2.metric("Questions in pool", len(pool))
-        col3.metric("Search term", f'"{search_term}"' if search_term else "None")
-    else:
-        st.info("No questions match current filters.")
-
-    # Sample question preview
-    st.subheader("Random Sample from Pool")
-    if pool:
-        sample = random.choice(pool)
-        with st.container(border=True):
-            render_question_card(sample, show_answer=True)
+# ═════════
