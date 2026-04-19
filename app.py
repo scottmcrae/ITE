@@ -7,7 +7,6 @@ import json
 import random
 import re
 import streamlit as st
-import streamlit.components.v1 as components
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -153,24 +152,16 @@ def render_explanation(q):
             st.markdown(raw)
         return
 
-    lines = []
-    lines.append('<div style="font-family:sans-serif;font-size:0.9rem;line-height:1.6;">')
     for section in q["explanation"]:
         heading = section.get("heading")
         bullets = section.get("bullets", [])
         if heading:
-            lines.append(f'<p style="color:#d4813a;font-weight:700;font-size:1rem;margin:20px 0 4px 0;">{heading}</p>')
+            st.markdown(f"**{heading}**")
         for bullet in bullets:
-            lines.append(f'<p style="color:#5fad7e;margin:6px 0 2px 0;">{bullet["text"]}</p>')
+            st.markdown(bullet["text"])
             para = bullet.get("sub_paragraph", "")
             if para:
-                lines.append(f'<p style="color:#c8c8c8;margin:2px 0 4px 0;padding-left:1rem;line-height:1.6;">{para}</p>')
-    lines.append('</div>')
-    html_out = "\n".join(lines)
-    # Estimate height: count chars in paragraphs and assume ~80 chars per line at 24px
-    total_chars = sum(len(l) for l in lines)
-    estimated_height = max(200, (total_chars // 80) * 24 + html_out.count("<p") * 20)
-    components.html(html_out, height=estimated_height, scrolling=True)
+                st.markdown(para)
 
 
 # ─── Helper: render a single question card ────────────────────────────────────
