@@ -16,6 +16,99 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+st.markdown("""
+<style>
+/* ── Global background & text — Claude-style dark grey ── */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background-color: #2d2d2d !important;
+    color: #e3e3e3 !important;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #262626 !important;
+}
+[data-testid="stSidebar"] * {
+    color: #e3e3e3 !important;
+}
+
+/* All text elements */
+p, li, label, span, div, h1, h2, h3, h4, h5, h6 {
+    color: #e3e3e3 !important;
+}
+
+/* Inputs */
+input, textarea, [data-testid="stTextInput"] input {
+    background-color: #383838 !important;
+    color: #e3e3e3 !important;
+    border-color: #4a4a4a !important;
+}
+
+/* Selectbox / multiselect */
+[data-testid="stSelectbox"] div,
+[data-testid="stMultiSelect"] div {
+    background-color: #383838 !important;
+    color: #e3e3e3 !important;
+}
+
+/* Radio buttons */
+[data-testid="stRadio"] label {
+    color: #e3e3e3 !important;
+}
+
+/* Buttons */
+[data-testid="stButton"] button {
+    background-color: #383838 !important;
+    color: #e3e3e3 !important;
+    border: 1px solid #4a4a4a !important;
+}
+[data-testid="stButton"] button:hover {
+    background-color: #424242 !important;
+    border-color: #666666 !important;
+}
+
+/* Containers / cards */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: #333333 !important;
+    border-color: #444444 !important;
+}
+
+/* Expander */
+[data-testid="stExpander"] {
+    background-color: #333333 !important;
+    border-color: #444444 !important;
+}
+[data-testid="stExpander"] summary {
+    color: #e3e3e3 !important;
+}
+
+/* Metric */
+[data-testid="stMetric"] label,
+[data-testid="stMetric"] div {
+    color: #e3e3e3 !important;
+}
+
+/* Success / error / warning */
+[data-testid="stAlert"] {
+    background-color: #333333 !important;
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    background-color: #333333 !important;
+    color: #e3e3e3 !important;
+}
+
+/* Charts axis labels */
+text { fill: #e3e3e3 !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #2d2d2d; }
+::-webkit-scrollbar-thumb { background: #555555; border-radius: 3px; }
+</style>
+""", unsafe_allow_html=True)
+
 # ─── Load data ────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_questions():
@@ -52,6 +145,8 @@ st.sidebar.markdown(f"**{len(pool):,}** questions match")
 
 # ─── Helper: render explanation ───────────────────────────────────────────────
 def render_explanation(q):
+    st.markdown(f"**Answer: {q['correct_letter']}) {q['correct_label']}**")
+    st.markdown("---")
     if not q.get("explanation"):
         raw = q.get("explanation_raw", "")
         if raw:
