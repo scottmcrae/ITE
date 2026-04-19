@@ -129,8 +129,10 @@ st.sidebar.caption("2015–2024 · 1,960 questions")
 mode = st.sidebar.radio("Mode", ["📖 Browse", "🧠 Quiz"], label_visibility="collapsed")
 
 all_years = sorted(set(q["year"] for q in questions))
-selected_year = st.sidebar.selectbox("Filter by year", options=all_years)
-selected_years = [selected_year]
+year_options = ["All Years"] + all_years
+default_year_index = 1 if mode == "📖 Browse" else 0
+selected_year = st.sidebar.selectbox("Filter by year", options=year_options, index=default_year_index)
+selected_years = all_years if selected_year == "All Years" else [selected_year]
 
 # Keyword search (shared between modes)
 search_term = st.sidebar.text_input("🔍 Search question text", placeholder="e.g. diabetes, chest pain")
