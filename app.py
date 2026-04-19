@@ -144,7 +144,7 @@ pool = [
     and (not search_term or search_term.lower() in q["stem"].lower())
 ]
 
-st.sidebar.markdown(f"**{len(pool):,}** questions match")
+st.sidebar.markdown(f"**{len(pool):,}** questions")
 
 # ─── Helper: render explanation ───────────────────────────────────────────────
 def render_explanation(q):
@@ -249,9 +249,10 @@ elif mode == "🧠 Quiz":
     # Quiz config
     col1, col2 = st.columns(2)
     with col1:
-        quiz_size = st.number_input(
-            "Number of questions", min_value=1, max_value=min(50, len(pool)), value=10, step=1
+        quiz_size = st.selectbox(
+            "Number of questions", options=[5, 10, 25, 50, 100], index=1
         )
+        quiz_size = min(quiz_size, len(pool))
     with col2:
         st.markdown(" ")
         if st.button("🔀 New Quiz"):
