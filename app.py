@@ -108,6 +108,7 @@ text { fill: #e3e3e3 !important; }
 ::-webkit-scrollbar-thumb { background: #555555; border-radius: 3px; }
 
 /* Explanation colors — must beat the global p override */
+[data-testid="stMarkdownContainer"] p.expl-answer { margin: 0 0 0 0 !important; font-size: 1rem; }
 [data-testid="stMarkdownContainer"] p.expl-head { color: #e8923f !important; font-weight: 700; font-size: 1rem; margin: 20px 0 4px 0; }
 [data-testid="stMarkdownContainer"] p.expl-sum  { color: #6dc98a !important; margin: 6px 0 2px 0; }
 [data-testid="stMarkdownContainer"] p.expl-para { color: #dedede !important; margin: 6px 0 20px 0; padding-left: 1rem; line-height: 1.6; }
@@ -148,7 +149,7 @@ st.sidebar.markdown(f"**{len(pool):,}** questions")
 
 # ─── Helper: render explanation ───────────────────────────────────────────────
 def render_explanation(q):
-    st.markdown(f"**Answer: {q['correct_letter']}) {q['correct_label']}**")
+    st.markdown(f'<p class="expl-answer"><strong>Answer: {q["correct_letter"]}) {q["correct_label"]}</strong></p>', unsafe_allow_html=True)
     if not q.get("explanation"):
         raw = q.get("explanation_raw", "")
         if raw:
@@ -299,7 +300,7 @@ elif mode == "📋 Summaries":
             continue
 
         with st.container(border=True):
-            st.markdown(f"**Answer: {q['correct_letter']}) {q['correct_label']}**")
+            st.markdown(f'<p class="expl-answer"><strong>Answer: {q["correct_letter"]}) {q["correct_label"]}</strong></p>', unsafe_allow_html=True)
             parts = []
             last_heading = None
             for heading, summary, para in summaries:
