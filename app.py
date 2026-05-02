@@ -115,6 +115,35 @@ text { fill: #e3e3e3 !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ─── Scroll-position preservation (fixes mobile jump on radio change) ─────────
+st.components.v1.html("""
+<script>
+(function() {
+    const SCROLL_KEY = '__ite_scroll__';
+
+    // On load, restore scroll position if we saved one
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved !== null) {
+        // Wait for Streamlit to finish painting before restoring
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.parent.document.documentElement.scrollTop = parseInt(saved, 10);
+                window.parent.document.body.scrollTop = parseInt(saved, 10);
+            });
+        });
+        sessionStorage.removeItem(SCROLL_KEY);
+    }
+
+    // Before any form submit / widget interaction triggers a rerun, save scroll
+    const target = window.parent.document;
+    target.addEventListener('click', () => {
+        const y = target.documentElement.scrollTop || target.body.scrollTop;
+        sessionStorage.setItem(SCROLL_KEY, y);
+    }, true);
+})();
+</script>
+""", height=0)
+
 # ─── Load data ────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_questions():
@@ -127,7 +156,7 @@ questions = load_questions()
 st.sidebar.title("🩺 ABFM ITE Bank")
 st.sidebar.caption("2015–2024 · 1,960 questions")
 
-mode = st.sidebar.radio("Mode", ["📖 Browse", "🧠 Quiz", "📋 Summaries"], label_visibility="collapsed")
+mode = st.sidebar.radio("Mode", ["🧠 Quiz", "📖 Browse", "📋 Summaries"], label_visibility="collapsed")
 
 all_years = sorted(set(q["year"] for q in questions))
 year_options = ["All Years"] + all_years
