@@ -115,34 +115,7 @@ text { fill: #e3e3e3 !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Scroll-position preservation (fixes mobile jump on radio change) ─────────
-st.components.v1.html("""
-<script>
-(function() {
-    const SCROLL_KEY = '__ite_scroll__';
 
-    // On load, restore scroll position if we saved one
-    const saved = sessionStorage.getItem(SCROLL_KEY);
-    if (saved !== null) {
-        // Wait for Streamlit to finish painting before restoring
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                window.parent.document.documentElement.scrollTop = parseInt(saved, 10);
-                window.parent.document.body.scrollTop = parseInt(saved, 10);
-            });
-        });
-        sessionStorage.removeItem(SCROLL_KEY);
-    }
-
-    // Before any form submit / widget interaction triggers a rerun, save scroll
-    const target = window.parent.document;
-    target.addEventListener('click', () => {
-        const y = target.documentElement.scrollTop || target.body.scrollTop;
-        sessionStorage.setItem(SCROLL_KEY, y);
-    }, true);
-})();
-</script>
-""", height=0)
 
 # ─── Load data ────────────────────────────────────────────────────────────────
 @st.cache_data
@@ -214,31 +187,37 @@ def render_question_card(q, show_answer=True, quiz_key=None):
 
     choices = q.get("choices", {})
     if quiz_key is not None:
-        # Interactive radio for quiz mode
-        choice_labels = [f"{k}) {v}" for k, v in sorted(choices.items())]
-        selected = st.radio(
-            "Select answer:",
-            options=choice_labels,
-            key=quiz_key,
-            index=None,
-            label_visibility="collapsed",
-        )
+        # Use st.form so radio selection doesn't trigger a rerun (fixes mobile scroll jump)
+        result_key = f"result_{quiz_key}"
+        with st.form(key=f"form_{quiz_key}"):
+            choice_labels = [f"{k}) {v}" for k, v in sorted(choices.items())]
+            selected = st.radio(
+                "Select answer:",
+                options=choice_labels,
+                index=None,
+                label_visibility="collapsed",
+            )
+            submitted = st.form_submit_button("Submit")
 
-        if st.button("Submit", key=f"btn_{quiz_key}"):
+        if submitted:
             if selected is None:
                 st.warning("Please select an answer first.")
             else:
                 chosen_letter = selected[0]
                 correct = q["correct_letter"]
-                if chosen_letter == correct:
-                    st.success(f"✅ Correct! **{correct}) {q['correct_label']}**")
-                else:
-                    st.error(
-                        f"❌ Incorrect. You chose **{chosen_letter}**. "
-                        f"Correct: **{correct}) {q['correct_label']}**"
-                    )
-                with st.expander("📖 Explanation", expanded=True):
-                    render_explanation(q)
+                st.session_state[result_key] = (chosen_letter, correct)
+
+        if result_key in st.session_state:
+            chosen_letter, correct = st.session_state[result_key]
+            if chosen_letter == correct:
+                st.success(f"✅ Correct! **{correct}) {q['correct_label']}**")
+            else:
+                st.error(
+                    f"❌ Incorrect. You chose **{chosen_letter}**. "
+                    f"Correct: **{correct}) {q['correct_label']}**"
+                )
+            with st.expander("📖 Explanation", expanded=True):
+                render_explanation(q)
     else:
         # Browse mode — show choices statically
         for letter, text in sorted(choices.items()):
@@ -287,7 +266,7 @@ elif mode == "🧠 Quiz":
         st.markdown(" ")
         if st.button("🔀 New Quiz"):
             for key in list(st.session_state.keys()):
-                if key.startswith("quiz_"):
+                if key.startswith("quiz_") or key.startswith("result_"):
                     del st.session_state[key]
             st.session_state.quiz_questions = random.sample(pool, quiz_size)
             st.rerun()
