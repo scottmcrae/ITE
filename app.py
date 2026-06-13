@@ -126,14 +126,12 @@ def load_questions():
 questions = load_questions()
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
-all_years = sorted(set(q["year"] for q in questions))
-year_range = f"{all_years[0]}–{all_years[-1]}" if all_years else ""
-
 st.sidebar.title("🩺 ABFM ITE Bank")
-st.sidebar.caption(f"{year_range} · {len(questions):,} questions")
+st.sidebar.caption("2015–2024 · 1,960 questions")
 
 mode = st.sidebar.radio("Mode", ["🧠 Quiz", "📖 Browse", "📋 Summaries"], label_visibility="collapsed")
 
+all_years = sorted(set(q["year"] for q in questions))
 year_options = ["All Years"] + all_years
 default_year_index = 0 if mode == "🧠 Quiz" else 1
 selected_year = st.sidebar.selectbox("Filter by year", options=year_options, index=default_year_index)
@@ -148,6 +146,8 @@ pool = [
     if q["year"] in selected_years
     and (not search_term or search_term.lower() in q["stem"].lower())
 ]
+
+st.sidebar.markdown(f"**{len(pool):,}** questions")
 
 # ─── Helper: render explanation ───────────────────────────────────────────────
 def render_explanation(q):
@@ -308,6 +308,8 @@ elif mode == "📋 Summaries":
             continue
 
         with st.container(border=True):
+            st.markdown(f"##### {q['year']} · Q{q['number']}")
+            st.markdown(q["stem"])
             st.markdown(f'<p class="expl-answer"><strong>Answer: {q["correct_letter"]}) {q["correct_label"]}</strong></p>', unsafe_allow_html=True)
             parts = []
             last_heading = None
